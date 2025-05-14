@@ -5,3 +5,7 @@ To Download release
 ```
 wget https://github.com/Dirkenhymer/rusty-ransom/releases/download/v1.0/rusty-ransom.exe
 ```
+# Disclaimer
+The spirit of this Open Source initiative is to help security researchers.
+
+The information in this repository is for research and educational purposes and not meant to be used in production environments and/or as part of commercial products.
