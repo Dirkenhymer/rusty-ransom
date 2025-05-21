@@ -3,7 +3,7 @@ A simple tool in rust to simulate ransomware.
 
 To Download release
 ```
-wget https://github.com/Dirkenhymer/rusty-ransom/releases/download/v1.0/rusty-ransom.exe
+wget https://github.com/Dirkenhymer/rusty-ransom/releases/download/v1.1/rusty-ransom.exe
 ```
 # Disclaimer
 The spirit of this Open Source initiative is to help security researchers.
